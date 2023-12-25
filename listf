@@ -1,0 +1,7 @@
+#! /usr/bin/bash
+ts=($(ls -l | cut -d ' ' -f 9))
+if (( ${#ts[@]} == 0 ));then
+echo "No Tables"
+else 
+ls 
+fi 

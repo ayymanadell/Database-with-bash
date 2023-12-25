@@ -1,0 +1,103 @@
+#! /usr/bin/bash 
+sel=($(ls))
+     if (( ${#sel[@]} == 0 ));then
+	echo "No Tables"
+     else 
+      read -p "Enter Table Name: " selname
+        sellf=0;	
+        sell=0;
+        for sel_i in ${sel[@]} 
+         do
+	  ((sell++))
+          if [[ $selname == $sel_i ]]; then
+	      sellf=1
+              x3=$(sed -n '1p' ".$selname-meta")
+              IFS=':'
+              read -ra selarr <<< "$x3"
+              IFS=$' \t\n' 
+              select svar1 in "Select All" "Select a Column" "Select by Column" "Exit"
+		do
+		case $svar1 in
+		"Select All" )
+		 echo "$x3"  | sed -n 's/:/|/gp'  
+		 sed -n 's/:/|/gp' $selname  
+		 break
+		;;
+
+		"Select a Column" )
+		 echo "Choose a column"
+		 select svar2 in ${selarr[@]} "exit" 
+		 do
+                 if [[ $svar2 == 'exit' ]];then 
+		 break
+                 fi
+                 if [[ $svar2 != '' ]]; 
+		 then
+		  colkey=0
+		  for selcol in ${selarr[@]}
+		   do  
+		    ((colkey++))
+		    if [[ $selcol == $svar2 ]]; then
+		      break
+		    fi
+		  done
+		  echo ${selarr[$colkey-1]}
+		  cut -d : -f $colkey $selname
+                  break
+                  else
+                   echo "wrong entry, choose from the given columns"
+		  fi 
+		 done
+		 break
+		;;
+
+		"Select by Column" )
+		 echo "Choose column to filter by"
+		 select s1var2 in ${selarr[@]} "exit"
+		 do
+	         if [[ $s1var2 == 'exit' ]]; 
+                 then break
+                 fi
+                 if [[ $s1var2 != '' ]]; 
+                 then
+                  col1key=0
+		  for sel1col in ${selarr[@]}
+		   do  
+		    ((col1key++))
+		    if [[ $sel1col == $s1var2 ]]; then
+		      break
+		    fi
+		  done
+                  chkvr=$(cut -d : -f $col1key $selname)
+		  chkar=($chkvr)
+		  read -p "Enter the value : " valenter
+                  valkey=0
+                  echo "$x3"  | sed -n 's/:/|/gp' 
+                  for chkelem in ${chkar[@]}
+		  do
+                  ((valkey++))
+                   if [[ $valenter == $chkelem ]]; then
+		     p=p
+                     sed -n "$valkey$p" $selname  | tr ':' "|"
+                   fi
+		  done
+                  break 
+                  else
+                   echo "wrong entry, choose from the given columns"
+		 fi 
+		 done
+		 break 
+                 ;;
+                 "Exit" ) 
+		 break
+		;;
+		*)
+                  echo "wrong entry, Choose from the given options"
+                 ;;
+		esac
+		done
+          elif (( $sellf == 0  && $sell == ${#sel[@]} )); then
+	   echo "No Table with the entered name exists !"
+          fi     
+          done
+     fi 

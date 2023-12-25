@@ -1,0 +1,82 @@
+#! /usr/bin/bash 
+     upd=($(ls))
+     if (( ${#upd[@]} == 0 ));then
+	echo "No Tables"
+     else 
+      read -p "Enter Table Name: " updname
+        updf=0;
+        uupd=0;	
+        for upd_i in ${upd[@]} 
+        do
+	 ((uupd++))
+         if [[ $updname == $upd_i ]]; then
+                flag=0
+		updf=1;
+		column_names=$(sed -n '1p' ".$updname-meta")
+		data_types=$(sed -n '2p' ".$updname-meta")
+		IFS=':'
+		read -ra column_array <<< "$column_names"
+		read -ra data_tarray <<< "$data_types"
+		IFS=$' \t\n'
+		echo "Choose the field that you want to update: "
+		 select update_col in ${column_array[@]} 'cancel'
+		 do
+                 if [[ $update_col == ${column_array[0]} ]]; then
+                   echo "Primary key cannot be updated since it may lead to inconsistancy"
+                   break
+                 elif [[ $update_col != 'cancel' ]]; then
+		 for i in ${!column_array[@]}; do
+		    if [[ ${column_array[i]} == $update_col ]]; then
+			index="$i"
+                        flag=1
+			break
+                    fi
+		 done
+                 if (( $flag == 1 )); then
+		 dtype=${data_tarray[$index]}
+		 col_indx=$((index+1))
+                 read -p "enter the primary key: " pkval
+		 read -p "enter the new value: " updated_val
+		 if [[ $updated_val =~ ^[a-zA-Z]+$ && $dtype = "S" ]]; then
+
+		  awk -v v1=$updated_val -v v2=$pkval -v v3=$col_indx -F : '{
+
+		     if($1==v2) {
+			$v3=v1
+			}
+			print $0
+		 }' $updname  | sed  "s/ /:/g" > ../.tmp1 
+                 cat ../.tmp1 > $updname
+		  
+		 echo "Done"	     
+		 break    
+		 elif [[ $updated_val =~ ^[0-9]+$ && $dtype == "N" ]]; then
+		  
+		  awk -v v1=$updated_val -v v2=$pkval -v v3=$col_indx -F : '{
+
+		     if($1==v2) {
+			$v3=v1
+			}
+		      print $0
+		 }' $updname | sed  "s/ /:/g" > ../.tmp1 
+                 cat ../.tmp1 > $updname
+		 
+		 echo "Done"
+
+		 break
+		 else 
+		    echo "Wrong datatype unable to update"
+		    break
+		 fi
+                   else echo "wrong entry, Choose from the list"     
+                 fi    
+                 elif [[ $update_col == 'cancel' ]]; then
+                    echo "canceled"
+                    break
+                 fi   
+		 done
+          elif (( $updf == 0 &&  $uupd == ${#upd[@]} )); then
+	    echo "No Table with the entered name exists !"
+	 fi     
+        done
+     fi

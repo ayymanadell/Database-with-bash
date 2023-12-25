@@ -1,0 +1,161 @@
+#! /usr/bin/bash 
+     del=($(ls))
+     if (( ${#del[@]} == 0 ));then
+	echo "No Tables"
+     else 
+      read -p "Enter Table Name: " delname
+        dellf=0;
+        dell=0;	
+        for del_i in ${del[@]} 
+         do
+	  ((dell++))
+          if [[ $delname == $del_i ]]; then
+              dellf=1;
+              x4=$(sed -n '1p' ".$delname-meta")
+              IFS=':'
+              read -ra delarr <<< "$x4"
+              IFS=$' \t\n' 
+              select dvar1 in "Delete All" "Delete by Column" "Delete a column" "Cancel"
+		do
+		case $dvar1 in
+		"Delete All" )
+		 wrdcnt=$(grep -c -v '^$' "$delname")
+		 echo '' > $delname
+                 echo "$wrdcnt rows deleted" 
+		 break
+		;;
+		"Delete by Column" )
+		 echo "Choose column to filter by"
+		 select d1var2 in ${delarr[@]} "cancel"
+		 do
+                 if [[ $d1var2 == 'cancel' ]]; 
+                 then
+                 echo "canceled"
+                 break
+                 fi
+                 if [[ $d1var2 != '' ]]; 
+                 then
+                  dol1key=0
+		  for del1col in ${delarr[@]}
+		   do  
+		    ((dol1key++))
+		    if [[ $del1col == $d1var2 ]]; then
+		      break
+		    fi
+		  done
+                  dchkvr=$(cut -d : -f $dol1key $delname)
+		  dchkar=($dchkvr)
+		 read -p "Enter the value : " dvalenter
+                  dvalkey=0
+	          dinc=0
+                  for dchkelem in ${dchkar[@]}
+		  do
+                  ((dvalkey++))
+                   if [[ $dvalenter == $dchkelem ]]; then
+		     d=d
+                     sed -i "$dvalkey$d" $delname
+		     ((dinc++)) 
+                   fi
+		  done
+		  echo "$dinc rows deleted"
+                  break 
+                  else
+                   echo "wrong entry, choose from the given columns"
+		 fi 
+		 done
+		 break
+		;;
+               
+		"Delete a column" )
+               	 select drp in "Remove All data" "Drop the column" 'cancel'
+			 do
+			 case $drp in 
+			 "Drop the column" )
+			 select dvar3 in ${delarr[@]} "cancel"
+			 do
+                         if [[ $dvar3 == 'cancel' ]]; 
+			 then
+                          echo "canceled"
+			  break
+                         elif [[ $dvar3 == ${delarr[0]} ]]; then
+			  echo "Cannot Delete or drop Primary"
+                         break
+                         fi
+			 if [[ $dvar3 != '' ]]; 
+			 then
+			  dol2key=0
+			  for del2col in ${delarr[@]}
+			   do  
+			    ((dol2key++))
+			    if [[ $del2col == $dvar3 ]]; then
+			      break
+			    fi
+			  done
+                          awk -v v1=$dol2key -F : 'BEGIN{OFS=":"}{$v1=""; print $0  }' $delname |  awk 'BEGIN {FS=OFS=":"} {sub(/^:/, "", $0); sub(/:$/, "", $0); print}' | sed "s/::/:/g" > ../.tmp1
+			  cat ../.tmp1 > $delname
+                          awk -v v1=$dol2key -F : 'BEGIN{OFS=":"}{$v1=""; print $0  }' ".$delname-meta" |  awk 'BEGIN {FS=OFS=":"} {sub(/^:/, "", $0); sub(/:$/, "", $0); print}' | sed "s/::/:/g" > ../.tmp1
+			  cat ../.tmp1 > ".$delname-meta"
+                          echo "dropped!"
+			  break 3
+			  else
+			   echo "wrong entry, choose from the given columns"
+			  fi 
+			 done
+			 break 
+			 ;;
+			 "Remove All data" )
+			 select dvar4 in ${delarr[@]} "cancel"
+			 do
+                         if [[ $dvar4 == 'cancel' ]]; 
+			 then
+                          echo "canceled"
+                          break
+                         elif [[ $dvar4 == ${delarr[0]} ]];
+                         then
+                           echo "Cannot Delete or drop Primary"
+                           break
+                         fi
+			 if [[ $dvar4 != '' ]]; 
+			 then
+			  dol3key=0
+			  for del3col in ${delarr[@]}
+			   do  
+			    ((dol3key++))
+			    if [[ $del3col == $dvar4 ]]; then
+			      break
+			    fi
+			  done
+			  awk -v v1=$dol3key -F : 'BEGIN{OFS=":"} { $v1="NULL"; print $0 }' $delname > ../.tmp1
+			  cat ../.tmp1 > $delname
+                          echo "the data in the column has been deleted !"
+			  break 3
+			  else
+			   echo "wrong entry, choose from the given columns"
+			  fi 
+			 done
+			break 
+			;;
+                        "cancel" )
+                          echo 'canceled'
+                          break 3
+                         ;;
+                        *)
+                          echo "Wrong entry choose from the given options" 
+                        ;;
+			esac
+			done
+                           ;;
+                 "Cancel" )
+                  echo "Cancelled"
+                  break 
+                 ;;
+                *)
+		echo "Wrong entry choose from the given options"
+                 ;;
+		esac
+		done
+          elif (( $dellf == 0 && $dell == ${#del[@]}  )); then
+	   echo "No Table with the entered name exists !"
+          fi     
+          done
+     fi 

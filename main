@@ -1,0 +1,96 @@
+#! /usr/bin/bash
+PS3=">>" 
+umask 111
+if [ -d $HOME/.DB ]; then 
+ cd $HOME/.DB
+else
+ mkdir $HOME/.DB
+ cd $HOME/.DB
+fi
+select var in "Create DB" "List DB" "Connect DB" "Drop DB" "Exit"
+ do
+  case $var in
+   "Create DB" ) 
+    read -p "Enter database name: " dcrname
+     if [[ $dcrname =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+      if [[ -d $dcrname ]];then
+        echo "This Name exists"
+      else
+       mkdir $dcrname
+       echo "$dcrname Created"
+      fi
+     else
+       echo "invalid db name"
+     fi
+     
+   ;;
+   "List DB" )
+     dbs=($( ls -F | grep / | ls -F | grep / | cut -f 1 -d '/' ))
+     if (( ${#dbs[@]} == 0 ));then
+	echo "No Databases"
+
+     else 
+       ls -F | grep / | cut -f 1 -d '/'
+
+     fi 
+
+   ;;
+   "Connect DB" ) 
+     dbs=($( ls -F | grep / | ls -F | grep / | cut -f 1 -d '/' ))
+     if (( ${#dbs[@]} == 0 ));then
+	echo "No Databases"
+     else 
+      read -p "Enter database name: " dcname
+        c=0;	
+        for i in ${dbs[@]} 
+        do
+	 ((c++))
+         if [[ $dcname == $i ]]; then
+          chmod u+x $dcname
+          cd $dcname 
+	  echo "Connected to $dcname"
+          export PS3="$dcname>>"
+          . tables
+       	  break
+	 else
+	  if (( $c == ${#dbs[@]} )); then
+	   echo "No Database with the entered name exists !"
+	  fi
+         fi 
+        done
+     fi
+   
+   ;;
+   "Drop DB" )
+     dbs=($( ls -F | grep / | ls -F | grep / | cut -f 1 -d '/' ))
+     if (( ${#dbs[@]} == 0 ));then
+	echo "No Databases"
+     else 
+      read -p "Enter database name: " ddname
+        d=0;	
+        for i in ${dbs[@]} 
+        do
+	 ((d++))
+         if [[ $ddname == $i ]]; then
+          rm -Ir $ddname
+	   if [[ -d $ddname ]]; then
+  	    echo 'Canceled'
+	   else 
+	    echo "$ddname removed"
+
+    	   fi
+       	  break
+	 else
+	  if (( $d == ${#dbs[@]} )); then
+	   echo "No Database with the entered name exists !"
+
+	  fi
+         fi 
+        done
+     fi
+   ;; 
+   "Exit" ) exit 
+   ;;
+   *) echo "Wrong entry please try again or press 5 to exit" ;;
+  esac
+ done

@@ -1,0 +1,28 @@
+#! /usr/bin/bash   
+     ts=($(ls))
+     if (( ${#ts[@]} == 0 ));then
+	echo "No Tables"
+     else 
+      read -p "Enter Table Name: " tdname
+        tdf=0;
+        td=0;	
+        for i in ${ts[@]} 
+        do
+	 ((td++))
+         if [[ $tdname == $i ]]; then
+          tdf=1
+          rm -Ir $tdname
+	   if [[ -f $tdname ]]; then
+  	    echo 'Canceled'
+	   else 
+ 	    rm -I ".$tdname-meta"
+	    echo "$tdname removed"
+    	   fi
+       	  break
+	 else
+	  if (( $tdf == 0 && $td == ${#ts[@]} )); then
+	   echo "No Table with the entered name exists !"
+	  fi
+         fi 
+        done
+     fi

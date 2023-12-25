@@ -1,0 +1,75 @@
+#! /usr/bin/bash 
+   ins=($(ls))
+     if (( ${#ins[@]} == 0 ));then
+	echo "No Tables"
+     else 
+      read -p "Enter Table Name: " insname
+        iinsf=0;
+        iins=0;	
+        for ins_i in ${ins[@]} 
+        do
+	 ((iins++))
+         if [[ $insname == $ins_i ]]; then
+                iinsf=1;
+                x2=$(sed -n '1p' ".$insname-meta")
+		d2=$(sed -n '2p' ".$insname-meta")
+		IFS=':'
+		read -ra arr1 <<< "$x2"
+		read -ra arr2 <<< "$d2"
+		arri=()
+		IFS=$' \t\n'
+		pkl=$(cut -d : -f 1 $insname)
+		pkarr=($pkl)
+		pkfl=0;
+		for ((inc=1; $inc<=${#arr1[@]}; inc++ )); do
+		   if (( $inc == 1 ));then
+			 x1pk='the Primarykey'
+		   else
+			  x1pk="" 
+		   fi
+		   while true; do 
+		   if [[ ${arr2[$((inc-1))]} == "S" ]]; then
+		 	 snm="String"
+		   else
+			 snm="Number" 
+		   fi
+		   read -p "Enter a $snm to column ${arr1[$((inc-1))]} $x1pk :" enter_data
+
+		   if (( $inc == 1 )); then
+                    if [[ $enter_data == "" ]]; then
+		      echo "primary key must be not null, enter another one"
+		      pkfl=1
+                    fi
+		    for pk in ${pkarr[@]}  
+		    do
+		     if [[ $enter_data == $pk ]]; then
+		      echo "repeated primary key, enter another one"
+		      pkfl=1
+		      break
+		     fi
+		    done
+		   fi
+		    if (( $pkfl == 0)); then
+		    if [[  $enter_data =~ ^[a-zA-Z]+$ && ${arr2[$((inc-1))]} == "S" ]]; then
+		       arri+=("$enter_data:")
+		       break 
+		     elif [[ $enter_data =~ ^[0-9]+$ && ${arr2[$((inc-1))]} == "N" ]]; then
+		       arri+=("$enter_data:")
+		       break
+		    elif [[ $enter_data == "" ]]; then
+			arri+=("NULL:")
+			break
+		     else
+		       echo "Wrong, please enter $snm with no spaces and a special characters"
+		    fi
+		    fi
+		   pkfl=0
+		 done
+		done
+		echo ${arri[@]} |  tr -d ' ' >> $insname
+               echo "Inserted in the table"
+	 elif (( $iinsf == 0 && $iins == ${#ins[@]} )); then
+	   echo "No Table with the entered name exists !"
+	 fi     
+        done
+     fi

@@ -1,0 +1,50 @@
+#! /usr/bin/bash
+umask 111
+select var2 in "Create Table" "List Tables" "Drop Table" "Update Table" "Select From Table" "Insert Into Table" "Delete From Table" "Back to the Main Menu" 
+do
+ case $var2 in
+ "Create Table" ) 
+ 
+ . createf
+
+ ;;
+ "List Tables" )
+ . listf
+ ;;
+
+ "Drop Table" )
+ . dropf 
+ 
+ ;;
+ "Update Table" )
+
+  . updatef
+ ;;
+ "Select From Table" )
+  
+ . selectf
+ ;;
+ "Insert Into Table" )
+
+  . insertf
+ ;;
+
+
+ "Delete From Table" )
+  
+  . deletef
+ ;;
+ "Back to the Main Menu" )
+   PS3=">>" 
+   . main
+   
+
+ ;;
+
+
+ *)
+  echo "Wrong entry choose from the given options"
+  ;;
+ esac
+
+done

@@ -1,0 +1,67 @@
+#! /usr/bin/bash
+read -p "Enter Table name: " tname
+if [[ $tname =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
+if [[ -f $tname ]];then
+echo "This Name exists"
+else
+cn=()
+dt=()
+fl=0
+while true; do
+read -p "How Many columns do you want? " c_tcols
+if [[ $c_tcols =~ ^[1-9]+$ ]]; then
+ for ((i=1; i<=$((c_tcols)); i++));
+ do
+ if (( $i == 1 ));then
+   xpk='the Primarykey'
+ else
+  xpk="" 
+ fi
+ while true; do
+ read -p "Enter the name of column $i $xpk: " c_tcoln
+  for l in ${cn[@]}
+  do
+  if [[ $l == "$c_tcoln:" ]]; then
+    fl=1
+  fi
+  done 
+  if [[  $c_tcoln =~ ^[a-zA-Z][a-zA-Z0-9]*$ && $fl -eq 0 ]]; then
+    cn+=("$c_tcoln:")
+    break  
+  else
+    echo "Invalid or repeated column name !, Please enter a valid name"
+  fi
+  fl=0
+ done
+ echo "Choose the Datatype of $i $x: " 
+ select var2 in "Number" "String"
+  do
+  case $var2 in 
+  "Number" ) c_tcold="N" 
+    dt+=("N:")
+    break
+    ;;
+  "String" ) c_tcold="S"
+    dt+=("S:")
+    break 
+    ;;
+   *)
+    echo "Wrong entry, choose from the given options"
+    ;;
+  esac
+  done
+ done
+ break   
+else
+ echo "invalid entry , please enter a number" 
+fi
+done
+touch "$tname" 
+touch ".$tname-meta"
+echo ${cn[@]} |  tr -d ' ' >> ".$tname-meta"
+echo ${dt[@]} |  tr -d ' ' >> ".$tname-meta"
+echo "Table is created"
+fi
+else
+echo "invalid table name"
+fi
