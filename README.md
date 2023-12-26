@@ -17,6 +17,7 @@ This project involves creating a Basic Database Management System (DBMS) using B
 **2. Dealing with Tables and Data:**
 
 - **Create Table:** Users can create tables where the first column serves as the primary key, ensuring no null or repeated values. Tables must have unique names within a database.
+- **columns** in the same tables cannot have repeated names
 
 - **List Tables:** Display a list of tables within the connected database.
 
